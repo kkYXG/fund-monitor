@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-04 14:38:57",
+  "updatedAt": "2026-06-04 14:41:09",
   "status": {
     "007091": {
       "buyable": false,
@@ -13,11 +13,17 @@
       "name": "东方臻享纯债债券A",
       "sgztMark": ""
     },
-    "012539": {
-      "buyable": true,
-      "sgzt": "限大额",
-      "name": "东方兴润债券A",
-      "sgztMark": "限大额(单日累计购买上限5000元。)"
+    "003102": {
+      "buyable": false,
+      "sgzt": "暂停申购",
+      "name": "长盛盛裕纯债A",
+      "sgztMark": ""
+    },
+    "004685": {
+      "buyable": false,
+      "sgzt": "暂停申购",
+      "name": "金元顺安元启灵活配置混合",
+      "sgztMark": ""
     }
   }
 }
