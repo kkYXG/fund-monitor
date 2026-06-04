@@ -1,4 +1,11 @@
 {
-  "updatedAt": "",
-  "status": {}
+  "updatedAt": "2026-06-04 14:11:58",
+  "status": {
+    "007091": {
+      "buyable": false,
+      "sgzt": "暂停申购",
+      "name": "东兴兴福一年定开债券A",
+      "sgztMark": ""
+    }
+  }
 }
