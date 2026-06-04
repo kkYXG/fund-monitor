@@ -1,0 +1,372 @@
+/* 自选基金助手 网页版 样式
+ * 还原支付宝/养基宝持仓列表观感：红涨绿跌、紧凑表格、卡片化区块
+ * 自适应：宽屏表格、窄屏（手机）横向滚动
+ */
+
+:root {
+  --up: #f5485b;        /* 涨：红 */
+  --down: #18ab5b;      /* 跌：绿 */
+  --primary: #1890ff;   /* 主色：政务蓝 */
+  --border: #ebeef5;
+  --text: #303133;
+  --text-sub: #909399;
+  --bg: #f5f7fa;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
+    "Helvetica Neue", Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  font-size: 14px;
+}
+
+#app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* ===== 顶部标题与汇总 ===== */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.header h1 {
+  font-size: 20px;
+  margin: 0;
+  font-weight: 600;
+}
+/* ===== 顶部大盘指数行情条 ===== */
+.index-bar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.index-item {
+  flex: 1 1 160px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 10px 16px;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+.index-name {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.index-price {
+  font-size: 18px;
+  font-weight: 700;
+}
+.index-chg {
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+/* ===== 汇总栏（彩色边框药丸，还原原扩展样式） ===== */
+.summary-bar {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.pill {
+  border: 1px solid;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 600;
+  font-size: 15px;
+  background: #fff;
+}
+/* 盈：红框红字；亏：绿框绿字 */
+.pill-up {
+  color: var(--up);
+  border-color: var(--up);
+}
+.pill-down {
+  color: var(--down);
+  border-color: var(--down);
+}
+
+/* ===== 操作区 ===== */
+.toolbar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+.btn {
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  background: var(--primary);
+  color: #fff;
+  transition: opacity 0.2s;
+  min-height: 32px;
+}
+.btn:hover { opacity: 0.85; }
+.btn.ghost {
+  background: #fff;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn.danger { background: var(--up); }
+/* 幽灵风格的危险按钮：红字红框，悬停填充红底，提示危险操作但不喧宾夺主 */
+.btn.ghost.danger {
+  background: #fff;
+  color: var(--up);
+  border: 1px solid var(--up);
+}
+.btn.ghost.danger:hover {
+  background: var(--up);
+  color: #fff;
+  opacity: 1;
+}
+.input {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  min-height: 32px;
+  outline: none;
+}
+.input:focus { border-color: var(--primary); }
+
+/* ===== 基金表格 ===== */
+.table-wrap {
+  background: #fff;
+  border-radius: 8px;
+  overflow-x: auto;            /* 窄屏横向滚动，不挤压列 */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+table.fund {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+table.fund th,
+table.fund td {
+  padding: 12px 10px;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+table.fund th {
+  color: var(--text-sub);
+  font-weight: 500;
+  font-size: 13px;
+  background: #fafafa;
+  position: sticky;
+  top: 0;
+}
+table.fund th:first-child,
+table.fund td:first-child {
+  text-align: left;
+  position: sticky;
+  left: 0;
+  background: #fff;          /* 首列固定时遮住下层 */
+}
+table.fund th:first-child { background: #fafafa; }
+.fund-name {
+  font-weight: 500;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fund-code {
+  color: var(--text-sub);
+  font-size: 12px;
+}
+.up { color: var(--up); }
+.down { color: var(--down); }
+.muted { color: var(--text-sub); }
+
+.row-actions {
+  display: inline-flex;
+  gap: 8px;
+}
+.row-actions a {
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 13px;
+}
+.row-actions a.del { color: var(--up); }
+
+/* ===== 空状态 ===== */
+.empty {
+  text-align: center;
+  padding: 48px 0;
+  color: var(--text-sub);
+}
+
+/* ===== 弹窗（OCR 校正 / 手动添加） ===== */
+.mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+.modal {
+  background: #fff;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 720px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+.modal h2 {
+  margin: 0 0 16px;
+  font-size: 18px;
+}
+.modal .actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* OCR 进度 */
+.progress {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 12px 0;
+}
+.progress > span {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.2s;
+}
+
+/* OCR 校正表 */
+table.review {
+  width: 100%;
+  border-collapse: collapse;
+}
+table.review th,
+table.review td {
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  font-size: 13px;
+}
+table.review .input { width: 100%; }
+table.review .small { width: 110px; }
+.tag-ok { color: var(--down); font-size: 12px; }
+.tag-warn { color: var(--up); font-size: 12px; }
+
+/* 拖拽上传区 */
+.drop {
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  padding: 28px;
+  text-align: center;
+  color: var(--text-sub);
+  cursor: pointer;
+}
+.drop.dragover {
+  border-color: var(--primary);
+  background: rgba(24, 144, 255, 0.04);
+}
+
+/* ===== 可买监控弹窗 ===== */
+/* 添加监控输入行 */
+.watch-add {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+  flex-wrap: wrap;
+}
+.watch-add .input { flex: 1; min-width: 140px; }
+/* 列表中的「移除」链接 */
+.link-danger {
+  color: var(--up);
+  cursor: pointer;
+  font-size: 13px;
+}
+.link-danger:hover { text-decoration: underline; }
+/* 云端同步设置折叠区 */
+.sync-box {
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+.sync-box summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text);
+}
+.sync-form { margin-top: 12px; }
+.sync-form label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-sub);
+  margin-bottom: 10px;
+}
+.sync-form label .input {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+}
+.sync-ok { color: var(--down); font-size: 13px; }
+.sync-err { color: var(--up); font-size: 13px; }
+
+/* ===== 列表标签页切换 ===== */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.tab {
+  border: none;
+  background: none;
+  padding: 10px 18px;
+  font-size: 15px;
+  cursor: pointer;
+  color: var(--text-sub);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.tab:hover { color: var(--primary); }
+.tab.active {
+  color: var(--primary);
+  font-weight: 600;
+  border-bottom-color: var(--primary);
+}
+.watch-panel { margin-top: 4px; }
+
+/* ===== 自适应：手机端 ===== */
+@media (max-width: 640px) {
+  #app { padding: 8px; }
+  .pill { font-size: 13px; padding: 6px 10px; }
+  .index-price { font-size: 16px; }
+  .header h1 { font-size: 17px; }
+}

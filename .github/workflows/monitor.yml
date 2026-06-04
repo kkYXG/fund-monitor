@@ -1,0 +1,54 @@
+name: 基金可买监控
+
+# 每 6 小时运行一次（cron 为 UTC；分钟用 7 错开整点，降低被延迟概率）
+# 也支持在 Actions 页面手动 Run workflow 测试
+on:
+  schedule:
+    - cron: "7 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      notify_code:
+        description: "立即查询并邮件告知该基金代码的可买状态（留空则只做常规监控）"
+        required: false
+        default: ""
+
+# 需要写权限以便把更新后的 monitor/state.json 提交回仓库
+permissions:
+  contents: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 运行监控脚本
+        env:
+          # 敏感信息来自仓库 Secrets，明文不入代码/日志
+          MAIL_USER: ${{ secrets.MAIL_USER }}
+          MAIL_PASS: ${{ secrets.MAIL_PASS }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+          # 非敏感，可按需在仓库 Variables 覆盖；缺省走网易企业邮箱
+          SMTP_HOST: ${{ vars.SMTP_HOST }}
+          SMTP_PORT: ${{ vars.SMTP_PORT }}
+          # 网页新增监控时传入的即时查询代码（定时触发时为空）
+          NOTIFY_CODE: ${{ github.event.inputs.notify_code }}
+        run: python monitor/check.py
+
+      - name: 回写状态文件（仅有变化时提交）
+        run: |
+          if [ -n "$(git status --porcelain monitor/state.json)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add monitor/state.json
+            git commit -m "chore: update monitor state [skip ci]"
+            git push
+          else
+            echo "state.json 无变化，跳过提交。"
+          fi

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>自选基金助手 · 网页版</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <!-- Vue 3 全局版（无需打包） -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <!-- Tesseract.js 前端 OCR -->
+    <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <!-- 顶部大盘指数行情条（保留原扩展功能，始终显示，数据未到时占位） -->
+      <div class="index-bar">
+        <div class="index-item" v-for="idx in indices" :key="idx.code">
+          <div class="index-name">{{ idx.name }}</div>
+          <div
+            class="index-price"
+            :class="idx.changeRate == null ? '' : (idx.changeRate >= 0 ? 'up' : 'down')"
+          >
+            {{ fmt(idx.price) }}
+          </div>
+          <div
+            class="index-chg"
+            :class="idx.changeRate == null ? '' : (idx.changeRate >= 0 ? 'up' : 'down')"
+          >
+            <template v-if="idx.changeRate == null">--</template>
+            <template v-else>
+              {{ idx.change >= 0 ? '+' : '' }}{{ fmt(idx.change) }}
+              {{ idx.changeRate >= 0 ? '+' : '' }}{{ fmt(idx.changeRate) }}%
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- 顶部标题 -->
+      <div class="header">
+        <h1>自选基金助手 · 网页版</h1>
+      </div>
+
+      <!-- 汇总栏：总金额 / 日收益 / 持有收益（保留原扩展样式：彩色边框药丸） -->
+      <div class="summary-bar">
+        <div class="pill" :class="totalEstProfit >= 0 ? 'pill-up' : 'pill-down'">
+          总金额：{{ fmt(totalAmount) }}
+        </div>
+        <div class="pill" :class="totalEstProfit >= 0 ? 'pill-up' : 'pill-down'">
+          日收益：{{ totalEstProfit >= 0 ? '' : '' }}{{ fmt(totalEstProfit) }}（{{ fmt(totalEstProfitRate) }}%）
+        </div>
+        <div class="pill" :class="totalHoldProfit >= 0 ? 'pill-up' : 'pill-down'">
+          持有收益：{{ fmt(totalHoldProfit) }}（{{ fmt(totalHoldProfitRate) }}%）
+        </div>
+      </div>
+
+      <!-- 标签页：自选基金 / 监控列表 -->
+      <div class="tabs">
+        <button
+          class="tab"
+          :class="{ active: activeTab === 'funds' }"
+          @click="switchTab('funds')"
+        >
+          📋 自选基金
+        </button>
+        <button
+          class="tab"
+          :class="{ active: activeTab === 'watch' }"
+          @click="switchTab('watch')"
+        >
+          🔔 监控列表
+        </button>
+      </div>
+
+      <!-- ========== 自选基金视图 ========== -->
+      <div v-show="activeTab === 'funds'">
+        <!-- 操作区 -->
+        <div class="toolbar">
+          <button class="btn" @click="openOcr">📷 截图识别添加</button>
+          <button class="btn ghost" @click="refresh" :disabled="loading">
+            {{ loading ? '刷新中…' : '↻ 刷新行情' }}
+          </button>
+          <button
+            class="btn ghost danger"
+            @click="clearAll"
+            v-if="funds.length"
+          >
+            🗑 一键清空
+          </button>
+        </div>
+
+        <!-- 基金列表 -->
+        <div class="table-wrap" v-if="funds.length">
+          <table class="fund">
+            <thead>
+              <tr>
+                <th>基金名称（{{ funds.length }}）</th>
+                <th>估算净值</th>
+                <th>持有额</th>
+                <th>持有收益</th>
+                <th>持有收益率</th>
+                <th>涨跌幅</th>
+                <th>估算收益</th>
+                <th>更新时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="f in funds" :key="f.code">
+                <td>
+                  <div class="fund-name">{{ f.name || '加载中…' }}</div>
+                  <div class="fund-code">{{ f.code }}</div>
+                </td>
+                <td>{{ fmt(curNav(f), 4) }}</td>
+                <td>{{ fmt(holdAmount(f)) }}</td>
+                <td :class="holdProfit(f) >= 0 ? 'up' : 'down'">
+                  {{ holdProfit(f) >= 0 ? '' : '' }}{{ fmt(holdProfit(f)) }}
+                </td>
+                <td :class="holdProfitRate(f) >= 0 ? 'up' : 'down'">
+                  {{ fmt(holdProfitRate(f)) }}%
+                </td>
+                <td :class="(changeRate(f) || 0) >= 0 ? 'up' : 'down'">
+                  <span v-if="changeRate(f) !== null">{{ fmt(changeRate(f)) }}%</span>
+                  <span v-else class="muted">--</span>
+                </td>
+                <td :class="estProfit(f) >= 0 ? 'up' : 'down'">
+                  {{ fmt(estProfit(f)) }}
+                </td>
+                <td class="muted">
+                  {{ f.gztime ? f.gztime.slice(11) : '--' }}
+                </td>
+                <td>
+                  <div class="row-actions">
+                    <a @click="editHolding(f)">编辑</a>
+                    <a class="del" @click="removeFund(f.code)">删除</a>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 空状态 -->
+        <div class="empty" v-else>
+          <p>暂无自选基金</p>
+          <p>点击「截图识别添加」上传支付宝/养基宝持仓截图导入</p>
+        </div>
+      </div>
+
+      <!-- ========== 监控列表视图（内联，非弹窗） ========== -->
+      <div v-show="activeTab === 'watch'" class="watch-panel">
+        <p class="muted">
+          输入买不了的基金代码加入监控，云端每 6 小时自动检查；一旦变为「可申购」会发邮件提醒。
+        </p>
+
+        <!-- 添加监控 -->
+        <div class="watch-add">
+          <input
+            class="input"
+            v-model="watchInput"
+            maxlength="6"
+            placeholder="输入 6 位基金代码"
+            @keyup.enter="addWatch"
+          />
+          <button class="btn" @click="addWatch">添加监控</button>
+          <button
+            class="btn ghost"
+            @click="refreshWatchStatus"
+            :disabled="watchLoading"
+          >
+            {{ watchLoading ? '查询中…' : '↻ 刷新状态' }}
+          </button>
+        </div>
+
+        <!-- 操作反馈（同步 / 邮件触发结果） -->
+        <p v-if="syncMsg" :class="syncOk ? 'sync-ok' : 'sync-err'">{{ syncMsg }}</p>
+
+        <!-- 监控列表 -->
+        <div class="table-wrap" v-if="watchList.length">
+          <table class="fund">
+            <thead>
+              <tr>
+                <th>基金名称（{{ watchList.length }}）</th>
+                <th>代码</th>
+                <th>申购状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="w in watchList" :key="w.code">
+                <td>{{ w.name || '—' }}</td>
+                <td>{{ w.code }}</td>
+                <td>
+                  <span v-if="w.sgzt" :class="w.buyable ? 'tag-ok' : 'tag-warn'">
+                    {{ w.buyable ? '✓ 可买' : '✕ 不可买' }} · {{ w.sgzt }}
+                  </span>
+                  <span v-else class="muted">待刷新</span>
+                </td>
+                <td>
+                  <div class="row-actions">
+                    <a class="del" @click="removeWatch(w.code)">移除</a>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="empty" v-else>
+          <p>暂无监控基金</p>
+          <p>在上方输入 6 位代码加入监控</p>
+        </div>
+
+        <!-- 云端同步设置（折叠） -->
+        <details class="sync-box">
+          <summary>☁ 云端同步设置（首次需配置）</summary>
+          <div class="sync-form">
+            <p class="muted">
+              填写你的 GitHub 仓库与 Token，监控名单会同步到云端供定时任务读取。Token 仅存本机浏览器，不上传。
+            </p>
+            <label>GitHub 用户名
+              <input class="input" v-model="ghOwner" placeholder="如 yaoxiaogang" />
+            </label>
+            <label>仓库名
+              <input class="input" v-model="ghRepo" placeholder="如 fund-monitor" />
+            </label>
+            <label>Token（细粒度，仅该仓库 Contents 读写）
+              <input class="input" type="password" v-model="ghToken" placeholder="github_pat_..." />
+            </label>
+            <div class="actions">
+              <button class="btn ghost" @click="saveGhConfig">保存设置</button>
+              <button class="btn" @click="syncWatch" :disabled="watchSyncing">
+                {{ watchSyncing ? '同步中…' : '测试 / 立即同步' }}
+              </button>
+            </div>
+            <p v-if="syncMsg" :class="syncOk ? 'sync-ok' : 'sync-err'">{{ syncMsg }}</p>
+          </div>
+        </details>
+      </div>
+
+      <!-- ===== OCR 截图识别弹窗 ===== -->
+      <div class="mask" v-if="showOcr" @click.self="showOcr = false">
+        <div class="modal">
+          <h2>截图识别添加</h2>
+
+          <!-- 上传区 -->
+          <label
+            class="drop"
+            :class="{ dragover }"
+            @dragover.prevent="dragover = true"
+            @dragleave.prevent="dragover = false"
+            @drop.prevent="onDrop"
+          >
+            <input
+              type="file"
+              accept="image/*"
+              style="display: none"
+              @change="onFilePick"
+            />
+            <div v-if="!ocrRunning">
+              点击选择截图，或拖拽 / 粘贴（Ctrl+V）截图到此处
+            </div>
+            <div v-else>识别中… {{ ocrProgress }}%</div>
+          </label>
+
+          <!-- 进度条 -->
+          <div class="progress" v-if="ocrRunning">
+            <span :style="{ width: ocrProgress + '%' }"></span>
+          </div>
+
+          <!-- 识别结果校正表 -->
+          <div v-if="reviewRows.length">
+            <p class="muted">
+              共识别 {{ reviewRows.length }} 项，请核对基金名与持有额后导入（可修改）：
+            </p>
+            <table class="review">
+              <thead>
+                <tr>
+                  <th>状态</th>
+                  <th>基金名称</th>
+                  <th>代码</th>
+                  <th>持有额</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(r, i) in reviewRows" :key="i">
+                  <td>
+                    <span v-if="r.matched && r.code" class="tag-ok">✓ 已匹配</span>
+                    <span v-else class="tag-warn">⚠ 待确认</span>
+                  </td>
+                  <td><input class="input" v-model="r.name" /></td>
+                  <td><input class="input small" v-model="r.code" placeholder="6位代码" /></td>
+                  <td>
+                    <input
+                      class="input small"
+                      type="number"
+                      v-model.number="r.amount"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="actions">
+            <button class="btn ghost" @click="showOcr = false">取消</button>
+            <button
+              class="btn"
+              v-if="reviewRows.length"
+              @click="confirmReview"
+            >
+              确认导入
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 业务脚本（按依赖顺序加载） -->
+    <script src="js/storage.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/market.js"></script>
+    <script src="js/fundMatch.js"></script>
+    <script src="js/ocr.js"></script>
+    <script src="js/watch.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
