@@ -117,8 +117,10 @@ def _smtp_send(subject, body):
     user = os.environ.get("MAIL_USER", "").strip()
     password = os.environ.get("MAIL_PASS", "").strip()
     to_addr = os.environ.get("MAIL_TO", "").strip() or user
-    host = os.environ.get("SMTP_HOST", "smtp.qiye.163.com").strip()
-    port = int(os.environ.get("SMTP_PORT", "465"))
+    # 用 `or` 而非 get 的默认值：工作流传入的空字符串("")也要回退到默认，
+    # 否则 int("") 会崩、host 会变空（这正是 vars.SMTP_PORT 未设置时的情况）。
+    host = (os.environ.get("SMTP_HOST") or "smtp.qiye.163.com").strip()
+    port = int(os.environ.get("SMTP_PORT") or "465")
 
     if not user or not password:
         print("缺少 MAIL_USER / MAIL_PASS，跳过发信", file=sys.stderr)
