@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-25 17:11:26",
+  "updatedAt": "2026-06-25 17:39:30",
   "status": {
     "003837": {
       "buyable": false,
@@ -11,6 +11,18 @@
       "buyable": false,
       "sgzt": "暂停申购",
       "name": "东兴兴福一年定开债券A",
+      "sgztMark": ""
+    },
+    "003102": {
+      "buyable": false,
+      "sgzt": "暂停申购",
+      "name": "长盛盛裕纯债A",
+      "sgztMark": ""
+    },
+    "004685": {
+      "buyable": false,
+      "sgzt": "暂停申购",
+      "name": "金元顺安元启灵活配置混合",
       "sgztMark": ""
     }
   }
