@@ -1,15 +1,15 @@
 {
-  "updatedAt": "2026-07-10 12:08:28",
+  "updatedAt": "2026-07-10 17:50:46",
   "status": {
     "003837": {
-      "buyable": false,
-      "sgzt": "暂停申购",
+      "buyable": true,
+      "sgzt": "限大额",
       "name": "东方臻享纯债债券A",
-      "sgztMark": ""
+      "sgztMark": "限大额(单日累计购买上限50万元。)"
     },
     "007091": {
-      "buyable": false,
-      "sgzt": "暂停申购",
+      "buyable": true,
+      "sgzt": "开放申购",
       "name": "东兴兴福一年定开债券A",
       "sgztMark": ""
     },
