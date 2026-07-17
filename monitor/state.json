@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-17 11:32:05",
+  "updatedAt": "2026-07-17 16:24:24",
   "status": {
     "003837": {
       "buyable": true,
@@ -8,8 +8,8 @@
       "sgztMark": "限大额(单日累计购买上限50万元。)"
     },
     "007091": {
-      "buyable": true,
-      "sgzt": "开放申购",
+      "buyable": false,
+      "sgzt": "暂停申购",
       "name": "东兴兴福一年定开债券A",
       "sgztMark": ""
     },
