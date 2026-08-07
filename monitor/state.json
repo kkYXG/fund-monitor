@@ -1,12 +1,6 @@
 {
-  "updatedAt": "2026-08-07 08:11:27",
+  "updatedAt": "2026-08-07 10:14:36",
   "status": {
-    "003837": {
-      "buyable": true,
-      "sgzt": "开放申购",
-      "name": "东方臻享纯债债券A",
-      "sgztMark": ""
-    },
     "007091": {
       "buyable": false,
       "sgzt": "暂停申购",
@@ -23,6 +17,12 @@
       "buyable": false,
       "sgzt": "暂停申购",
       "name": "金元顺安元启灵活配置混合",
+      "sgztMark": ""
+    },
+    "003837": {
+      "buyable": true,
+      "sgzt": "开放申购",
+      "name": "东方臻享纯债债券A",
       "sgztMark": ""
     }
   }
